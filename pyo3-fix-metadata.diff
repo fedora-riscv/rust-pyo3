@@ -1,7 +1,7 @@
---- pyo3-0.13.0/Cargo.toml	2020-12-22T16:06:37+00:00
-+++ pyo3-0.13.0/Cargo.toml	2021-01-07T22:17:51.790053+00:00
+--- pyo3-0.13.1/Cargo.toml	2021-01-10T12:52:30+00:00
++++ pyo3-0.13.1/Cargo.toml	2021-01-10T23:39:06.731495+00:00
 @@ -16,7 +16,7 @@
- version = "0.13.0"
+ version = "0.13.1"
  authors = ["PyO3 Project and Contributors <https://github.com/PyO3>"]
  build = "build.rs"
 -exclude = ["/.gitignore", ".cargo/config"]

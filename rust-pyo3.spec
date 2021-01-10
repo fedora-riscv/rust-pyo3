@@ -5,7 +5,7 @@
 %global crate pyo3
 
 Name:           rust-%{crate}
-Version:        0.13.0
+Version:        0.13.1
 Release:        1%{?dist}
 Summary:        Bindings to Python interpreter
 
@@ -47,6 +47,7 @@ which use "%{crate}" crate.
 %package     -n %{name}+default-devel
 Summary:        %{summary}
 BuildArch:      noarch
+Requires:       python3-devel >= 3.6
 
 %description -n %{name}+default-devel %{_description}
 
@@ -59,7 +60,6 @@ which use "default" feature of "%{crate}" crate.
 %package     -n %{name}+abi3-devel
 Summary:        %{summary}
 BuildArch:      noarch
-Requires:       python3-devel >= 3.9
 
 %description -n %{name}+abi3-devel %{_description}
 
@@ -119,6 +119,18 @@ This package contains library source intended for building other packages
 which use "abi3-py39" feature of "%{crate}" crate.
 
 %files       -n %{name}+abi3-py39-devel
+%ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
+
+%package     -n %{name}+auto-initialize-devel
+Summary:        %{summary}
+BuildArch:      noarch
+
+%description -n %{name}+auto-initialize-devel %{_description}
+
+This package contains library source intended for building other packages
+which use "auto-initialize" feature of "%{crate}" crate.
+
+%files       -n %{name}+auto-initialize-devel
 %ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
 
 %package     -n %{name}+ctor-devel
@@ -286,5 +298,8 @@ echo 'python3-devel >= 3.6'
 %endif
 
 %changelog
+* Sun Jan 10 2021 Fabio Valentini <decathorpe@gmail.com> - 0.13.1-1
+- Update to version 0.13.1.
+
 * Thu Jan 07 2021 Fabio Valentini <decathorpe@gmail.com> - 0.13.0-1
 - Initial package
