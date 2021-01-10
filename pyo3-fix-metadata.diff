@@ -1,0 +1,11 @@
+--- pyo3-0.13.0/Cargo.toml	2020-12-22T16:06:37+00:00
++++ pyo3-0.13.0/Cargo.toml	2021-01-07T22:17:51.790053+00:00
+@@ -16,7 +16,7 @@
+ version = "0.13.0"
+ authors = ["PyO3 Project and Contributors <https://github.com/PyO3>"]
+ build = "build.rs"
+-exclude = ["/.gitignore", ".cargo/config"]
++exclude = ["/.gitignore", ".cargo/config", "/codecov.yml", "/Makefile", "/pyproject.toml", "/tox.ini"]
+ description = "Bindings to Python interpreter"
+ homepage = "https://github.com/pyo3/pyo3"
+ documentation = "https://docs.rs/crate/pyo3/"
