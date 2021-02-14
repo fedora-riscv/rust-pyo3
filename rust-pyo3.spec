@@ -5,8 +5,8 @@
 %global crate pyo3
 
 Name:           rust-%{crate}
-Version:        0.13.1
-Release:        2%{?dist}
+Version:        0.13.2
+Release:        1%{?dist}
 Summary:        Bindings to Python interpreter
 
 # Upstream license specification: Apache-2.0
@@ -14,9 +14,14 @@ License:        ASL 2.0
 URL:            https://crates.io/crates/pyo3
 Source:         %{crates_source}
 # Initial patched metadata
-# * exclude Makefile, pyproject.toml, and tox.ini:
-#   https://github.com/PyO3/pyo3/pull/1380
+# * revert upstream MSRV downgrade to 1.41:
+#   https://github.com/PyO3/pyo3/commit/fa8d751
+#   The upstream patch downgrades indoc and paste depencencies to old versions,
+#   which is not necessary on Fedora since we only ship latest stable Rust.
 Patch0:         pyo3-fix-metadata.diff
+Patch1:         0001-Revert-Restore-compatibility-with-Rust-1.41.patch
+# fix some tests by adding explicit type hints
+Patch2:         0002-add-missing-type-parameters-that-cannot-be-inferred.patch
 
 ExclusiveArch:  %{rust_arches}
 %if %{__cargo_skip_build}
@@ -265,6 +270,18 @@ which use "pyo3-macros" feature of "%{crate}" crate.
 %files       -n %{name}+pyo3-macros-devel
 %ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
 
+%package     -n %{name}+serde-devel
+Summary:        %{summary}
+BuildArch:      noarch
+
+%description -n %{name}+serde-devel %{_description}
+
+This package contains library source intended for building other packages
+which use "serde" feature of "%{crate}" crate.
+
+%files       -n %{name}+serde-devel
+%ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
+
 %package     -n %{name}+unindent-devel
 Summary:        %{summary}
 BuildArch:      noarch
@@ -293,11 +310,14 @@ echo 'python3-devel >= 3.6'
 
 %if %{with check}
 %check
-# skip a test that fails in the wrong way
+# skip compile tests that are broken in offline mode
 %cargo_test -- -- --skip test_compile_errors
 %endif
 
 %changelog
+* Sun Feb 14 2021 Fabio Valentini <decathorpe@gmail.com> - 0.13.2-1
+- Update to version 0.13.2.
+
 * Wed Jan 27 2021 Fedora Release Engineering <releng@fedoraproject.org> - 0.13.1-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
 

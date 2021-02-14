@@ -1,11 +1,20 @@
---- pyo3-0.13.1/Cargo.toml	2021-01-10T12:52:30+00:00
-+++ pyo3-0.13.1/Cargo.toml	2021-01-10T23:39:06.731495+00:00
-@@ -16,7 +16,7 @@
- version = "0.13.1"
- authors = ["PyO3 Project and Contributors <https://github.com/PyO3>"]
- build = "build.rs"
--exclude = ["/.gitignore", ".cargo/config"]
-+exclude = ["/.gitignore", ".cargo/config", "/codecov.yml", "/Makefile", "/pyproject.toml", "/tox.ini"]
- description = "Bindings to Python interpreter"
- homepage = "https://github.com/pyo3/pyo3"
- documentation = "https://docs.rs/crate/pyo3/"
+--- pyo3-0.13.2/Cargo.toml	1970-01-01T00:00:00+00:00
++++ pyo3-0.13.2/Cargo.toml	2021-02-14T14:48:08.781144+00:00
+@@ -37,7 +37,7 @@
+ optional = true
+ 
+ [dependencies.indoc]
+-version = "0.3.6"
++version = "1.0.3"
+ optional = true
+ 
+ [dependencies.inventory]
+@@ -59,7 +59,7 @@
+ version = "0.11.0"
+ 
+ [dependencies.paste]
+-version = "0.1.18"
++version = "1.0.3"
+ optional = true
+ 
+ [dependencies.pyo3-macros]

@@ -1,0 +1,403 @@
+From 22b27fe1ebfe811c5d2aad2d77d94b0370d0c6e2 Mon Sep 17 00:00:00 2001
+From: Fabio Valentini <decathorpe@gmail.com>
+Date: Sun, 14 Feb 2021 15:45:33 +0100
+Subject: [PATCH] Revert "Restore compatibility with Rust 1.41."
+
+This reverts commit fa8d7518cab1655d0d3514ef4ebb5891c148acd1.
+---
+ .github/workflows/ci.yml              |  2 +-
+ Cargo.toml.orig                       |  6 ++--
+ README.md                             |  4 +--
+ src/buffer.rs                         |  7 +---
+ src/err/mod.rs                        |  8 +++--
+ src/ffi/cpython/abstract_.rs          |  6 ++--
+ src/freelist.rs                       |  8 ++---
+ src/gil.rs                            | 16 ++++-----
+ src/lib.rs                            |  6 ++--
+ src/pyclass.rs                        | 50 +++++++++------------------
+ tests/test_compile_error.rs           |  9 +----
+ tests/test_datetime.rs                |  4 +--
+ 16 files changed, 56 insertions(+), 98 deletions(-)
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index c2c199c8b..4aa408eac 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -58,7 +58,7 @@ jobs:
+             platform: { os: "windows-latest", python-architecture: "x64" }
+         include:
+           # Test minimal supported Rust version
+-          - rust: 1.41.1
++          - rust: 1.45.0
+             python-version: 3.9
+             platform: { os: "ubuntu-latest", python-architecture: "x64", rust-target: "x86_64-unknown-linux-gnu" }
+             msrv: "MSRV"
+diff --git a/Cargo.toml.orig b/Cargo.toml.orig
+index 77549699b..d6f11be8f 100644
+--- a/Cargo.toml.orig
++++ b/Cargo.toml.orig
+@@ -17,15 +17,13 @@ edition = "2018"
+ [dependencies]
+ cfg-if = { version = "1.0" }
+ ctor = { version = "0.1", optional = true }
+-# must stay at 0.3.x for Rust 1.41 compatibility
+-indoc = { version = "0.3.6", optional = true }
++indoc = { version = "1.0.3", optional = true }
+ inventory = { version = "0.1.4", optional = true }
+ libc = "0.2.62"
+ parking_lot = "0.11.0"
+ num-bigint = { version = "0.3", optional = true }
+ num-complex = { version = "0.3", optional = true }
+-# must stay at 0.1.x for Rust 1.41 compatibility
+-paste = { version = "0.1.18", optional = true }
++paste = { version = "1.0.3", optional = true }
+ pyo3-macros = { path = "pyo3-macros", version = "=0.13.2", optional = true }
+ unindent = { version = "0.1.4", optional = true }
+ hashbrown = { version = "0.9", optional = true }
+diff --git a/README.md b/README.md
+index b056ab44d..b09df485b 100644
+--- a/README.md
++++ b/README.md
+@@ -3,7 +3,7 @@
+ [![Actions Status](https://github.com/PyO3/pyo3/workflows/Test/badge.svg)](https://github.com/PyO3/pyo3/actions)
+ [![codecov](https://codecov.io/gh/PyO3/pyo3/branch/master/graph/badge.svg)](https://codecov.io/gh/PyO3/pyo3)
+ [![crates.io](http://meritbadge.herokuapp.com/pyo3)](https://crates.io/crates/pyo3)
+-[![minimum rustc 1.41](https://img.shields.io/badge/rustc-1.41+-blue.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
++[![minimum rustc 1.45](https://img.shields.io/badge/rustc-1.45+-blue.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
+ [![Join the dev chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/PyO3/Lobby)
+ 
+ [Rust](http://www.rust-lang.org/) bindings for [Python](https://www.python.org/). This includes running and interacting with Python code from a Rust binary, as well as writing native Python modules.
+@@ -18,7 +18,7 @@ A comparison with rust-cpython can be found [in the guide](https://pyo3.rs/maste
+ 
+ ## Usage
+ 
+-PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.41.
++PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.45.0.
+ 
+ Building with PyPy is also possible (via cpyext) for Python 3.6, targeted PyPy version is 7.3+.
+ Please refer to the [pypy section in the guide](https://pyo3.rs/master/building_and_distribution/pypy.html).
+diff --git a/src/buffer.rs b/src/buffer.rs
+index d78e14277..49d49636e 100644
+--- a/src/buffer.rs
++++ b/src/buffer.rs
+@@ -48,12 +48,7 @@ impl ElementType {
+     pub fn from_format(format: &CStr) -> ElementType {
+         match format.to_bytes() {
+             [char] | [b'@', char] => native_element_type_from_type_char(*char),
+-            [modifier, char]
+-                if (*modifier == b'='
+-                    || *modifier == b'<'
+-                    || *modifier == b'>'
+-                    || *modifier == b'!') =>
+-            {
++            [modifier, char] if matches!(modifier, b'=' | b'<' | b'>' | b'!') => {
+                 standard_element_type_from_type_char(*char)
+             }
+             _ => ElementType::Unknown,
+diff --git a/src/err/mod.rs b/src/err/mod.rs
+index fc64d6008..68bd3e1fa 100644
+--- a/src/err/mod.rs
++++ b/src/err/mod.rs
+@@ -594,8 +594,12 @@ mod tests {
+         assert!(debug_str.starts_with("PyErr { "));
+         assert!(debug_str.ends_with(" }"));
+ 
+-        // strip "PyErr { " and " }"
+-        let mut fields = debug_str["PyErr { ".len()..debug_str.len() - 2].split(", ");
++        let mut fields = debug_str
++            .strip_prefix("PyErr { ")
++            .unwrap()
++            .strip_suffix(" }")
++            .unwrap()
++            .split(", ");
+ 
+         assert_eq!(fields.next().unwrap(), "type: <class 'Exception'>");
+         if py.version_info() >= (3, 7) {
+diff --git a/src/ffi/cpython/abstract_.rs b/src/ffi/cpython/abstract_.rs
+index c8a770543..9c1e50105 100644
+--- a/src/ffi/cpython/abstract_.rs
++++ b/src/ffi/cpython/abstract_.rs
+@@ -3,8 +3,8 @@ use std::os::raw::{c_char, c_int, c_void};
+ 
+ #[cfg(all(Py_3_8, not(PyPy)))]
+ use crate::ffi::{
+-    pyport::PY_SSIZE_T_MAX, vectorcallfunc, PyCallable_Check, PyThreadState, PyThreadState_GET,
+-    PyTuple_Check, PyType_HasFeature, Py_TPFLAGS_HAVE_VECTORCALL,
++    vectorcallfunc, PyCallable_Check, PyThreadState, PyThreadState_GET, PyTuple_Check,
++    PyType_HasFeature, Py_TPFLAGS_HAVE_VECTORCALL,
+ };
+ #[cfg(all(Py_3_8, not(PyPy)))]
+ use libc::size_t;
+@@ -43,7 +43,7 @@ const PY_VECTORCALL_ARGUMENTS_OFFSET: Py_ssize_t =
+ #[cfg(all(Py_3_8, not(PyPy)))]
+ #[inline(always)]
+ pub unsafe fn PyVectorcall_NARGS(n: size_t) -> Py_ssize_t {
+-    assert!(n <= (PY_SSIZE_T_MAX as size_t));
++    assert!(n <= (Py_ssize_t::MAX as size_t));
+     (n as Py_ssize_t) & !PY_VECTORCALL_ARGUMENTS_OFFSET
+ }
+ 
+diff --git a/src/freelist.rs b/src/freelist.rs
+index 2c0870c0c..3b32ef8b8 100644
+--- a/src/freelist.rs
++++ b/src/freelist.rs
+@@ -84,7 +84,6 @@ where
+         crate::pyclass::default_new::<Self>(py, subtype) as _
+     }
+ 
+-    #[allow(clippy::clippy::collapsible_if)] // for if cfg!
+     unsafe fn dealloc(py: Python, self_: *mut Self::Layout) {
+         (*self_).py_drop(py);
+         let obj = PyAny::from_borrowed_ptr_or_panic(py, self_ as _);
+@@ -94,10 +93,9 @@ where
+             let free = get_type_free(ty).unwrap_or_else(|| tp_free_fallback(ty));
+             free(obj as *mut c_void);
+ 
+-            if cfg!(Py_3_8) {
+-                if ffi::PyType_HasFeature(ty, ffi::Py_TPFLAGS_HEAPTYPE) != 0 {
+-                    ffi::Py_DECREF(ty as *mut ffi::PyObject);
+-                }
++            #[cfg(Py_3_8)]
++            if ffi::PyType_HasFeature(ty, ffi::Py_TPFLAGS_HEAPTYPE) != 0 {
++                ffi::Py_DECREF(ty as *mut ffi::PyObject);
+             }
+         }
+     }
+diff --git a/src/gil.rs b/src/gil.rs
+index 4593f9608..2d69bba3b 100644
+--- a/src/gil.rs
++++ b/src/gil.rs
+@@ -71,7 +71,6 @@ pub(crate) fn gil_is_acquired() -> bool {
+ /// }
+ /// ```
+ #[cfg(all(Py_SHARED, not(PyPy)))]
+-#[allow(clippy::clippy::collapsible_if)] // for if cfg!
+ pub fn prepare_freethreaded_python() {
+     // Protect against race conditions when Python is not yet initialized and multiple threads
+     // concurrently call 'prepare_freethreaded_python()'. Note that we do not protect against
+@@ -87,10 +86,9 @@ pub fn prepare_freethreaded_python() {
+ 
+             // Changed in version 3.7: This function is now called by Py_Initialize(), so you don’t
+             // have to call it yourself anymore.
+-            if cfg!(not(Py_3_7)) {
+-                if ffi::PyEval_ThreadsInitialized() == 0 {
+-                    ffi::PyEval_InitThreads();
+-                }
++            #[cfg(not(Py_3_7))]
++            if ffi::PyEval_ThreadsInitialized() == 0 {
++                ffi::PyEval_InitThreads();
+             }
+ 
+             // Release the GIL.
+@@ -138,7 +136,6 @@ pub fn prepare_freethreaded_python() {
+ /// }
+ /// ```
+ #[cfg(all(Py_SHARED, not(PyPy)))]
+-#[allow(clippy::clippy::collapsible_if)] // for if cfg!
+ pub unsafe fn with_embedded_python_interpreter<F, R>(f: F) -> R
+ where
+     F: for<'p> FnOnce(Python<'p>) -> R,
+@@ -153,10 +150,9 @@ where
+ 
+     // Changed in version 3.7: This function is now called by Py_Initialize(), so you don’t have to
+     // call it yourself anymore.
+-    if cfg!(not(Py_3_7)) {
+-        if ffi::PyEval_ThreadsInitialized() == 0 {
+-            ffi::PyEval_InitThreads();
+-        }
++    #[cfg(not(Py_3_7))]
++    if ffi::PyEval_ThreadsInitialized() == 0 {
++        ffi::PyEval_InitThreads();
+     }
+ 
+     // Safe: the GIL is already held because of the Py_IntializeEx call.
+diff --git a/src/lib.rs b/src/lib.rs
+index ccbd0e671..c9dd0a226 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -224,7 +224,7 @@ pub mod proc_macro {
+ #[macro_export]
+ macro_rules! wrap_pyfunction {
+     ($function_name: ident) => {{
+-        &pyo3::paste::expr! { [<__pyo3_get_function_ $function_name>] }
++        &pyo3::paste::paste! { [<__pyo3_get_function_ $function_name>] }
+     }};
+ 
+     ($function_name: ident, $arg: expr) => {
+@@ -257,7 +257,7 @@ macro_rules! wrap_pyfunction {
+ #[macro_export]
+ macro_rules! raw_pycfunction {
+     ($function_name: ident) => {{
+-        pyo3::paste::expr! { [<__pyo3_raw_ $function_name>] }
++        pyo3::paste::paste! { [<__pyo3_raw_ $function_name>] }
+     }};
+ }
+ 
+@@ -267,7 +267,7 @@ macro_rules! raw_pycfunction {
+ #[macro_export]
+ macro_rules! wrap_pymodule {
+     ($module_name:ident) => {{
+-        pyo3::paste::expr! {
++        pyo3::paste::paste! {
+             &|py| unsafe { pyo3::PyObject::from_owned_ptr(py, [<PyInit_ $module_name>]()) }
+         }
+     }};
+diff --git a/src/pyclass.rs b/src/pyclass.rs
+index 2c2fe45db..56594a1e6 100644
+--- a/src/pyclass.rs
++++ b/src/pyclass.rs
+@@ -85,7 +85,6 @@ pub trait PyClassAlloc: PyTypeInfo + Sized {
+     ///
+     /// # Safety
+     /// `self_` must be a valid pointer to the Python heap.
+-    #[allow(clippy::clippy::collapsible_if)] // for if cfg!
+     unsafe fn dealloc(py: Python, self_: *mut Self::Layout) {
+         (*self_).py_drop(py);
+         let obj = self_ as *mut ffi::PyObject;
+@@ -94,10 +93,9 @@ pub trait PyClassAlloc: PyTypeInfo + Sized {
+         let free = get_type_free(ty).unwrap_or_else(|| tp_free_fallback(ty));
+         free(obj as *mut c_void);
+ 
+-        if cfg!(Py_3_8) {
+-            if ffi::PyType_HasFeature(ty, ffi::Py_TPFLAGS_HEAPTYPE) != 0 {
+-                ffi::Py_DECREF(ty as *mut ffi::PyObject);
+-            }
++        #[cfg(Py_3_8)]
++        if ffi::PyType_HasFeature(ty, ffi::Py_TPFLAGS_HEAPTYPE) != 0 {
++            ffi::Py_DECREF(ty as *mut ffi::PyObject);
+         }
+     }
+ }
+@@ -192,7 +190,8 @@ where
+         slots.push(ffi::Py_tp_call, call_meth as _);
+     }
+ 
+-    if cfg!(Py_3_9) {
++    #[cfg(Py_3_9)]
++    {
+         let members = py_class_members::<T>();
+         if !members.is_empty() {
+             slots.push(ffi::Py_tp_members, into_raw(members))
+@@ -262,18 +261,18 @@ fn tp_init_additional<T: PyClass>(type_object: *mut ffi::PyTypeObject) {
+ 
+     // Setting buffer protocols via slots doesn't work until Python 3.9, so on older versions we
+     // must manually fixup the type object.
+-    if cfg!(not(Py_3_9)) {
+-        if let Some(buffer) = T::get_buffer() {
+-            unsafe {
+-                (*(*type_object).tp_as_buffer).bf_getbuffer = buffer.bf_getbuffer;
+-                (*(*type_object).tp_as_buffer).bf_releasebuffer = buffer.bf_releasebuffer;
+-            }
++    #[cfg(not(Py_3_9))]
++    if let Some(buffer) = T::get_buffer() {
++        unsafe {
++            (*(*type_object).tp_as_buffer).bf_getbuffer = buffer.bf_getbuffer;
++            (*(*type_object).tp_as_buffer).bf_releasebuffer = buffer.bf_releasebuffer;
+         }
+     }
+ 
+     // Setting tp_dictoffset and tp_weaklistoffset via slots doesn't work until Python 3.9, so on
+     // older versions again we must fixup the type object.
+-    if cfg!(not(Py_3_9)) {
++    #[cfg(not(Py_3_9))]
++    {
+         // __dict__ support
+         if let Some(dict_offset) = PyCell::<T>::dict_offset() {
+             unsafe {
+@@ -392,13 +391,6 @@ fn py_class_members<T: PyClass>() -> Vec<ffi::structmember::PyMemberDef> {
+     members
+ }
+ 
+-// Stub needed since the `if cfg!()` above still compiles contained code.
+-#[cfg(not(Py_3_9))]
+-fn py_class_members<T: PyClass>() -> Vec<ffi::structmember::PyMemberDef> {
+-    vec![]
+-}
+-
+-#[allow(clippy::clippy::collapsible_if)] // for if cfg!
+ fn py_class_properties<T: PyClass>() -> Vec<ffi::PyGetSetDef> {
+     let mut defs = std::collections::HashMap::new();
+ 
+@@ -428,16 +420,7 @@ fn py_class_properties<T: PyClass>() -> Vec<ffi::PyGetSetDef> {
+ 
+     // PyPy doesn't automatically adds __dict__ getter / setter.
+     // PyObject_GenericGetDict not in the limited API until Python 3.10.
+-    push_dict_getset::<T>(&mut props);
+-
+-    if !props.is_empty() {
+-        props.push(unsafe { std::mem::zeroed() });
+-    }
+-    props
+-}
+-
+-#[cfg(not(any(PyPy, all(Py_LIMITED_API, not(Py_3_10)))))]
+-fn push_dict_getset<T: PyClass>(props: &mut Vec<ffi::PyGetSetDef>) {
++    #[cfg(not(any(PyPy, all(Py_LIMITED_API, not(Py_3_10)))))]
+     if !T::Dict::IS_DUMMY {
+         props.push(ffi::PyGetSetDef {
+             name: "__dict__\0".as_ptr() as *mut c_char,
+@@ -447,11 +430,12 @@ fn push_dict_getset<T: PyClass>(props: &mut Vec<ffi::PyGetSetDef>) {
+             closure: ptr::null_mut(),
+         });
+     }
++    if !props.is_empty() {
++        props.push(unsafe { std::mem::zeroed() });
++    }
++    props
+ }
+ 
+-#[cfg(any(PyPy, all(Py_LIMITED_API, not(Py_3_10))))]
+-fn push_dict_getset<T: PyClass>(_: &mut Vec<ffi::PyGetSetDef>) {}
+-
+ /// This trait is implemented for `#[pyclass]` and handles following two situations:
+ /// 1. In case `T` is `Send`, stub `ThreadChecker` is used and does nothing.
+ ///    This implementation is used by default. Compile fails if `T: !Send`.
+diff --git a/tests/test_compile_error.rs b/tests/test_compile_error.rs
+index c50f4be83..88e683ad6 100644
+--- a/tests/test_compile_error.rs
++++ b/tests/test_compile_error.rs
+@@ -9,18 +9,11 @@ fn test_compile_errors() {
+     t.compile_fail("tests/ui/invalid_pymethods.rs");
+     t.compile_fail("tests/ui/invalid_pymethod_names.rs");
+     t.compile_fail("tests/ui/reject_generics.rs");
++    t.compile_fail("tests/ui/static_ref.rs");
+ 
+-    tests_rust_1_45(&t);
+     tests_rust_1_48(&t);
+     tests_rust_1_49(&t);
+ 
+-    #[rustversion::since(1.45)]
+-    fn tests_rust_1_45(t: &trybuild::TestCases) {
+-        t.compile_fail("tests/ui/static_ref.rs");
+-    }
+-    #[rustversion::before(1.45)]
+-    fn tests_rust_1_45(_t: &trybuild::TestCases) {}
+-
+     #[rustversion::since(1.48)]
+     fn tests_rust_1_48(t: &trybuild::TestCases) {
+         t.compile_fail("tests/ui/invalid_result_conversion.rs");
+diff --git a/tests/test_datetime.rs b/tests/test_datetime.rs
+index 412e4958c..ef1709e2e 100644
+--- a/tests/test_datetime.rs
++++ b/tests/test_datetime.rs
+@@ -38,7 +38,7 @@ macro_rules! assert_check_exact {
+         unsafe {
+             use pyo3::{AsPyPointer, ffi::*};
+             assert!($check_func(($obj).as_ptr()) != 0);
+-            assert!(pyo3::paste::expr!([<$check_func Exact>])(($obj).as_ptr()) != 0);
++            assert!(pyo3::paste::paste!([<$check_func Exact>])(($obj).as_ptr()) != 0);
+         }
+     };
+ }
+@@ -48,7 +48,7 @@ macro_rules! assert_check_only {
+         unsafe {
+             use pyo3::{AsPyPointer, ffi::*};
+             assert!($check_func(($obj).as_ptr()) != 0);
+-            assert!(pyo3::paste::expr!([<$check_func Exact>])(($obj).as_ptr()) == 0);
++            assert!(pyo3::paste::paste!([<$check_func Exact>])(($obj).as_ptr()) == 0);
+         }
+     };
+ }
+-- 
+2.29.2
+
