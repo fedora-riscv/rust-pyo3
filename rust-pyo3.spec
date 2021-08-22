@@ -6,7 +6,7 @@
 
 Name:           rust-%{crate}
 Version:        0.13.2
-Release:        2%{?dist}
+Release:        %autorelease
 Summary:        Bindings to Python interpreter
 
 # Upstream license specification: Apache-2.0
@@ -315,17 +315,4 @@ echo 'python3-devel >= 3.6'
 %endif
 
 %changelog
-* Fri Jul 23 2021 Fedora Release Engineering <releng@fedoraproject.org> - 0.13.2-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild
-
-* Sun Feb 14 2021 Fabio Valentini <decathorpe@gmail.com> - 0.13.2-1
-- Update to version 0.13.2.
-
-* Wed Jan 27 2021 Fedora Release Engineering <releng@fedoraproject.org> - 0.13.1-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
-
-* Sun Jan 10 2021 Fabio Valentini <decathorpe@gmail.com> - 0.13.1-1
-- Update to version 0.13.1.
-
-* Thu Jan 07 2021 Fabio Valentini <decathorpe@gmail.com> - 0.13.0-1
-- Initial package
+%autochangelog
