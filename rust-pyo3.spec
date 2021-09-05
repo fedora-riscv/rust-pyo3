@@ -5,7 +5,7 @@
 %global crate pyo3
 
 Name:           rust-%{crate}
-Version:        0.14.3
+Version:        0.14.5
 Release:        %autorelease
 Summary:        Bindings to Python interpreter
 
@@ -325,13 +325,7 @@ echo 'python3-devel >= 3.6'
 # unit tests require an UTF-8 locale
 export LANG=C.utf8
 # unit tests require the "auto-initialize" feature
-%ifarch s390x
-# FIXME: skip endianness-specific tests that fail / segfault on s390x
-#        https://github.com/PyO3/pyo3/issues/1824
-%cargo_test -f auto-initialize -- -- --skip ffi::cpython::unicodeobject::tests --skip types::string::tests::test_string_data_ucs
-%else
 %cargo_test -f auto-initialize
-%endif
 %endif
 
 %changelog
