@@ -5,7 +5,7 @@
 %global crate pyo3
 
 Name:           rust-%{crate}
-Version:        0.14.5
+Version:        0.15.1
 Release:        %autorelease
 Summary:        Bindings to Python interpreter
 
@@ -17,7 +17,10 @@ Source:         %{crates_source}
 # * bump dependencies (MSRV 1.41 is not relevant for Fedora):
 #   - bump indoc from 0.3.6 to 1.0.3
 #   - bump paste from 0.1.18 to 1.0
-# * drop criterion dev-dependency (only used in benchmarks)
+# * relax exact versions for bitflags and half dev-dependencies
+# * drop unused, benchmark-only criterion dev-dependency to speed up builds
+# * drop unused benchmark definitions from Cargo.toml
+# * drop unused eyre feature (not packaged yet)
 Patch0:         pyo3-fix-metadata.diff
 
 ExclusiveArch:  %{rust_arches}
@@ -71,6 +74,18 @@ which use "abi3" feature of "%{crate}" crate.
 %files       -n %{name}+abi3-devel
 %ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
 
+%package     -n %{name}+abi3-py310-devel
+Summary:        %{summary}
+BuildArch:      noarch
+
+%description -n %{name}+abi3-py310-devel %{_description}
+
+This package contains library source intended for building other packages
+which use "abi3-py310" feature of "%{crate}" crate.
+
+%files       -n %{name}+abi3-py310-devel
+%ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
+
 %package     -n %{name}+abi3-py36-devel
 Summary:        %{summary}
 BuildArch:      noarch
@@ -121,6 +136,18 @@ This package contains library source intended for building other packages
 which use "abi3-py39" feature of "%{crate}" crate.
 
 %files       -n %{name}+abi3-py39-devel
+%ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
+
+%package     -n %{name}+anyhow-devel
+Summary:        %{summary}
+BuildArch:      noarch
+
+%description -n %{name}+anyhow-devel %{_description}
+
+This package contains library source intended for building other packages
+which use "anyhow" feature of "%{crate}" crate.
+
+%files       -n %{name}+anyhow-devel
 %ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
 
 %package     -n %{name}+auto-initialize-devel

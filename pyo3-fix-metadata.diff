@@ -1,6 +1,58 @@
---- pyo3-0.14.5/Cargo.toml	1970-01-01T00:00:01+00:00
-+++ pyo3-0.14.5/Cargo.toml	2021-09-05T14:15:08.717792+00:00
-@@ -76,7 +76,7 @@
+--- pyo3-0.15.1/Cargo.toml	1970-01-01T00:00:01+00:00
++++ pyo3-0.15.1/Cargo.toml	2021-11-22T11:18:19.902732+00:00
+@@ -29,51 +29,12 @@
+ no-default-features = true
+ rustdoc-args = ["--cfg", "docsrs"]
+ 
+-[[bench]]
+-name = "bench_call"
+-harness = false
+-
+-[[bench]]
+-name = "bench_err"
+-harness = false
+-
+-[[bench]]
+-name = "bench_dict"
+-harness = false
+-
+-[[bench]]
+-name = "bench_gil"
+-harness = false
+-
+-[[bench]]
+-name = "bench_list"
+-harness = false
+-
+-[[bench]]
+-name = "bench_pyclass"
+-harness = false
+-
+-[[bench]]
+-name = "bench_pyobject"
+-harness = false
+-
+-[[bench]]
+-name = "bench_set"
+-harness = false
+-
+-[[bench]]
+-name = "bench_tuple"
+-harness = false
+ [dependencies.anyhow]
+ version = "1.0"
+ optional = true
+ 
+ [dependencies.cfg-if]
+ version = "1.0"
+-
+-[dependencies.eyre]
+-version = ">= 0.4, < 0.7"
+-optional = true
+ 
+ [dependencies.hashbrown]
+ version = ">= 0.9, < 0.12"
+@@ -84,7 +45,7 @@
  optional = true
  
  [dependencies.indoc]
@@ -9,7 +61,7 @@
  optional = true
  
  [dependencies.inventory]
-@@ -98,7 +98,7 @@
+@@ -106,7 +67,7 @@
  version = "0.11.0"
  
  [dependencies.paste]
@@ -18,13 +70,19 @@
  optional = true
  
  [dependencies.pyo3-macros]
-@@ -114,9 +114,6 @@
- optional = true
- [dev-dependencies.assert_approx_eq]
+@@ -124,13 +85,10 @@
  version = "1.1.0"
+ 
+ [dev-dependencies.bitflags]
+-version = "=1.2.1"
 -
 -[dev-dependencies.criterion]
 -version = "=0.3.4"
++version = "1.2.1"
+ 
+ [dev-dependencies.half]
+-version = "=1.7.1"
++version = "1.7.1"
  
  [dev-dependencies.proptest]
  version = "0.10.1"
