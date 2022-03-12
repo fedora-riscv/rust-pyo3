@@ -17,6 +17,7 @@ Source:         %{crates_source}
 # * bump dependencies (MSRV 1.41 is not relevant for Fedora):
 #   - bump indoc from 0.3.6 to 1.0.3
 #   - bump paste from 0.1.18 to 1.0
+# * relax exact versions for optional indexmap dependency
 # * relax exact versions for bitflags and half dev-dependencies
 # * drop unused, benchmark-only criterion dev-dependency to speed up builds
 # * drop unused benchmark definitions from Cargo.toml

@@ -1,6 +1,6 @@
 --- pyo3-0.15.1/Cargo.toml	1970-01-01T00:00:01+00:00
-+++ pyo3-0.15.1/Cargo.toml	2021-11-22T11:18:19.902732+00:00
-@@ -29,51 +29,12 @@
++++ pyo3-0.15.1/Cargo.toml	2022-03-12T20:34:18.419081+00:00
+@@ -29,41 +29,6 @@
  no-default-features = true
  rustdoc-args = ["--cfg", "docsrs"]
  
@@ -42,17 +42,21 @@
  [dependencies.anyhow]
  version = "1.0"
  optional = true
- 
+@@ -71,20 +36,16 @@
  [dependencies.cfg-if]
  version = "1.0"
--
+ 
 -[dependencies.eyre]
 -version = ">= 0.4, < 0.7"
 -optional = true
- 
+-
  [dependencies.hashbrown]
  version = ">= 0.9, < 0.12"
-@@ -84,7 +45,7 @@
+ optional = true
+ 
+ [dependencies.indexmap]
+-version = ">= 1.6, < 1.8"
++version = "1.6"
  optional = true
  
  [dependencies.indoc]
