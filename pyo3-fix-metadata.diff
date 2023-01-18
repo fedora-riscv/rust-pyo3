@@ -1,6 +1,6 @@
---- pyo3-0.15.2/Cargo.toml	1970-01-01T00:00:01+00:00
-+++ pyo3-0.15.2/Cargo.toml	2022-05-05T09:14:10.358610+00:00
-@@ -57,42 +57,6 @@
+--- pyo3-0.16.6/Cargo.toml	1970-01-01T00:00:01+00:00
++++ pyo3-0.16.6/Cargo.toml	2023-01-17T19:53:56.296203+00:00
+@@ -56,52 +56,6 @@
      "docsrs",
  ]
  
@@ -17,6 +17,11 @@
 -harness = false
 -
 -[[bench]]
+-name = "bench_frompyobject"
+-harness = false
+-required-features = ["macros"]
+-
+-[[bench]]
 -name = "bench_gil"
 -harness = false
 -
@@ -27,6 +32,7 @@
 -[[bench]]
 -name = "bench_pyclass"
 -harness = false
+-required-features = ["macros"]
 -
 -[[bench]]
 -name = "bench_pyobject"
@@ -40,10 +46,14 @@
 -name = "bench_tuple"
 -harness = false
 -
+-[[bench]]
+-name = "bench_intern"
+-harness = false
+-
  [dependencies.anyhow]
  version = "1.0"
  optional = true
-@@ -109,11 +73,11 @@
+@@ -118,7 +72,7 @@
  optional = true
  
  [dependencies.indexmap]
@@ -52,37 +62,42 @@
  optional = true
  
  [dependencies.indoc]
--version = "0.3.6"
-+version = "1.0.3"
- optional = true
- 
- [dependencies.inventory]
-@@ -135,7 +99,7 @@
- version = "0.11.0"
- 
- [dependencies.paste]
--version = "0.1.18"
-+version = "1.0"
- optional = true
- 
- [dependencies.pyo3-macros]
-@@ -154,16 +118,13 @@
+@@ -161,9 +115,6 @@
+ [dev-dependencies.assert_approx_eq]
  version = "1.1.0"
  
- [dev-dependencies.bitflags]
--version = "=1.2.1"
-+version = "1.2.1"
- 
- [dev-dependencies.clap]
--version = "=2.33"
--
 -[dev-dependencies.criterion]
--version = "=0.3.4"
-+version = "2.33"
- 
- [dev-dependencies.half]
--version = "=1.7.1"
-+version = "1.7.1"
- 
+-version = "0.3.5"
+-
  [dev-dependencies.proptest]
  version = "0.10.1"
+ features = ["std"]
+@@ -171,9 +122,6 @@
+ 
+ [dev-dependencies.rustversion]
+ version = "1.0"
+-
+-[dev-dependencies.send_wrapper]
+-version = "0.5"
+ 
+ [dev-dependencies.serde]
+ version = "1.0"
+@@ -184,9 +132,6 @@
+ 
+ [dev-dependencies.trybuild]
+ version = "1.0.49"
+-
+-[dev-dependencies.widestring]
+-version = "0.5.1"
+ 
+ [build-dependencies.pyo3-build-config]
+ version = "0.16.6"
+@@ -236,8 +181,6 @@
+     "eyre",
+     "anyhow",
+ ]
+-generate-abi3-import-lib = ["generate-import-lib"]
+-generate-import-lib = ["pyo3-ffi/generate-import-lib"]
+ macros = [
+     "pyo3-macros",
+     "indoc",
