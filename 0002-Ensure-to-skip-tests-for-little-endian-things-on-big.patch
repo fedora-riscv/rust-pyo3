@@ -1,0 +1,26 @@
+From 7dd21aa26aa44890eec3b9331a932b84150595c3 Mon Sep 17 00:00:00 2001
+From: Fabio Valentini <decathorpe@gmail.com>
+Date: Thu, 26 Jan 2023 18:35:24 +0100
+Subject: [PATCH] Ensure to skip tests for little-endian things on big-endian
+ arches
+
+---
+ src/ffi/tests.rs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/ffi/tests.rs b/src/ffi/tests.rs
+index a0d3250..0800682 100644
+--- a/src/ffi/tests.rs
++++ b/src/ffi/tests.rs
+@@ -87,7 +87,7 @@ fn test_timezone_from_offset() {
+ }
+ 
+ #[test]
+-#[cfg(feature = "macros")]
++#[cfg(all(feature = "macros", target_endian = "little"))]
+ #[cfg_attr(target_arch = "wasm32", ignore)] // DateTime import fails on wasm for mysterious reasons
+ fn test_timezone_from_offset_and_name() {
+     use crate::types::PyDelta;
+-- 
+2.39.1
+
