@@ -1,5 +1,5 @@
---- pyo3-0.18.1/Cargo.toml	1970-01-01T00:00:01+00:00
-+++ pyo3-0.18.1/Cargo.toml	2023-03-03T19:29:34.899195+00:00
+--- pyo3-0.18.2/Cargo.toml	1970-01-01T00:00:01+00:00
++++ pyo3-0.18.2/Cargo.toml	2023-03-26T17:20:42.698756+00:00
 @@ -57,52 +57,6 @@
      "docsrs",
  ]
@@ -53,7 +53,7 @@
  [dependencies.anyhow]
  version = "1.0"
  optional = true
-@@ -171,9 +125,6 @@
+@@ -172,9 +126,6 @@
  
  [dev-dependencies.chrono]
  version = "0.4"
@@ -63,7 +63,7 @@
  
  [dev-dependencies.proptest]
  version = "0.10.1"
-@@ -186,9 +137,6 @@
+@@ -187,9 +138,6 @@
  [dev-dependencies.rustversion]
  version = "1.0"
  
@@ -73,7 +73,7 @@
  [dev-dependencies.serde]
  version = "1.0"
  features = ["derive"]
-@@ -198,9 +146,6 @@
+@@ -199,9 +147,6 @@
  
  [dev-dependencies.trybuild]
  version = ">=1.0.70"
@@ -82,8 +82,8 @@
 -version = "0.5.1"
  
  [build-dependencies.pyo3-build-config]
- version = "0.18.1"
-@@ -253,7 +198,6 @@
+ version = "0.18.2"
+@@ -254,7 +199,6 @@
      "anyhow",
      "experimental-inspect",
  ]
