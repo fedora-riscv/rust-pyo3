@@ -1,0 +1,171 @@
+diff --git a/src/ffi/tests.rs b/src/ffi/tests.rs
+index a0d32504497..97e838cf527 100644
+--- a/src/ffi/tests.rs
++++ b/src/ffi/tests.rs
+@@ -1,9 +1,7 @@
+ use crate::ffi::*;
+ use crate::{types::PyDict, AsPyPointer, IntoPy, Py, PyAny, Python};
+ 
+-#[cfg(target_endian = "little")]
+ use crate::types::PyString;
+-#[cfg(target_endian = "little")]
+ use libc::wchar_t;
+ 
+ #[cfg_attr(target_arch = "wasm32", ignore)] // DateTime import fails on wasm for mysterious reasons
+@@ -108,7 +106,6 @@ fn test_timezone_from_offset_and_name() {
+     })
+ }
+ 
+-#[cfg(target_endian = "little")]
+ #[test]
+ fn ascii_object_bitfield() {
+     let ob_base: PyObject = unsafe { std::mem::zeroed() };
+@@ -118,7 +115,7 @@ fn ascii_object_bitfield() {
+         length: 0,
+         #[cfg(not(PyPy))]
+         hash: 0,
+-        state: 0,
++        state: 0u32,
+         wstr: std::ptr::null_mut() as *mut wchar_t,
+     };
+ 
+@@ -130,27 +127,26 @@ fn ascii_object_bitfield() {
+         assert_eq!(o.ready(), 0);
+ 
+         for i in 0..4 {
+-            o.state = i;
++            o.set_interned(i);
+             assert_eq!(o.interned(), i);
+         }
+ 
+         for i in 0..8 {
+-            o.state = i << 2;
++            o.set_kind(i);
+             assert_eq!(o.kind(), i);
+         }
+ 
+-        o.state = 1 << 5;
++        o.set_compact(1);
+         assert_eq!(o.compact(), 1);
+ 
+-        o.state = 1 << 6;
++        o.set_ascii(1);
+         assert_eq!(o.ascii(), 1);
+ 
+-        o.state = 1 << 7;
++        o.set_ready(1);
+         assert_eq!(o.ready(), 1);
+     }
+ }
+ 
+-#[cfg(target_endian = "little")]
+ #[test]
+ #[cfg_attr(Py_3_10, allow(deprecated))]
+ fn ascii() {
+@@ -191,7 +187,6 @@ fn ascii() {
+     })
+ }
+ 
+-#[cfg(target_endian = "little")]
+ #[test]
+ #[cfg_attr(Py_3_10, allow(deprecated))]
+ fn ucs4() {
+diff --git a/src/types/mod.rs b/src/types/mod.rs
+index 923dfcc096d..8d3e2714383 100644
+--- a/src/types/mod.rs
++++ b/src/types/mod.rs
+@@ -36,7 +36,7 @@ pub use self::pysuper::PySuper;
+ pub use self::sequence::PySequence;
+ pub use self::set::PySet;
+ pub use self::slice::{PySlice, PySliceIndices};
+-#[cfg(all(not(Py_LIMITED_API), target_endian = "little"))]
++#[cfg(not(Py_LIMITED_API))]
+ pub use self::string::PyStringData;
+ pub use self::string::{PyString, PyString as PyUnicode};
+ pub use self::traceback::PyTraceback;
+diff --git a/src/types/string.rs b/src/types/string.rs
+index 2dc7a506476..3998a6adf04 100644
+--- a/src/types/string.rs
++++ b/src/types/string.rs
+@@ -1,6 +1,6 @@
+ // Copyright (c) 2017-present PyO3 Project and Contributors
+ 
+-#[cfg(all(not(Py_LIMITED_API), target_endian = "little"))]
++#[cfg(not(Py_LIMITED_API))]
+ use crate::exceptions::PyUnicodeDecodeError;
+ use crate::types::PyBytes;
+ use crate::{ffi, AsPyPointer, PyAny, PyResult, Python};
+@@ -12,7 +12,7 @@ use std::str;
+ ///
+ /// Python internally stores strings in various representations. This enumeration
+ /// represents those variations.
+-#[cfg(all(not(Py_LIMITED_API), target_endian = "little"))]
++#[cfg(not(Py_LIMITED_API))]
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+ pub enum PyStringData<'a> {
+     /// UCS1 representation.
+@@ -25,7 +25,7 @@ pub enum PyStringData<'a> {
+     Ucs4(&'a [u32]),
+ }
+ 
+-#[cfg(all(not(Py_LIMITED_API), target_endian = "little"))]
++#[cfg(not(Py_LIMITED_API))]
+ impl<'a> PyStringData<'a> {
+     /// Obtain the raw bytes backing this instance as a [u8] slice.
+     pub fn as_bytes(&self) -> &[u8] {
+@@ -238,9 +238,7 @@ impl PyString {
+     ///
+     /// By using this API, you accept responsibility for testing that PyStringData behaves as
+     /// expected on the targets where you plan to distribute your software.
+-    ///
+-    /// For example, it is known not to work on big-endian platforms.
+-    #[cfg(all(not(Py_LIMITED_API), target_endian = "little"))]
++    #[cfg(not(Py_LIMITED_API))]
+     pub unsafe fn data(&self) -> PyResult<PyStringData<'_>> {
+         let ptr = self.as_ptr();
+ 
+@@ -284,7 +282,7 @@ mod tests {
+     use super::*;
+     use crate::Python;
+     use crate::{PyObject, ToPyObject};
+-    #[cfg(all(not(Py_LIMITED_API), target_endian = "little"))]
++    #[cfg(not(Py_LIMITED_API))]
+     use std::borrow::Cow;
+ 
+     #[test]
+@@ -347,7 +345,7 @@ mod tests {
+     }
+ 
+     #[test]
+-    #[cfg(all(not(Py_LIMITED_API), target_endian = "little"))]
++    #[cfg(not(Py_LIMITED_API))]
+     fn test_string_data_ucs1() {
+         Python::with_gil(|py| {
+             let s = PyString::new(py, "hello, world");
+@@ -360,7 +358,7 @@ mod tests {
+     }
+ 
+     #[test]
+-    #[cfg(all(not(Py_LIMITED_API), target_endian = "little"))]
++    #[cfg(not(Py_LIMITED_API))]
+     fn test_string_data_ucs1_invalid() {
+         Python::with_gil(|py| {
+             // 0xfe is not allowed in UTF-8.
+@@ -386,7 +384,7 @@ mod tests {
+     }
+ 
+     #[test]
+-    #[cfg(all(not(Py_LIMITED_API), target_endian = "little"))]
++    #[cfg(not(Py_LIMITED_API))]
+     fn test_string_data_ucs2() {
+         Python::with_gil(|py| {
+             let s = py.eval("'foo\\ud800'", None, None).unwrap();
+@@ -428,7 +426,7 @@ mod tests {
+     }
+ 
+     #[test]
+-    #[cfg(all(not(Py_LIMITED_API), target_endian = "little"))]
++    #[cfg(not(Py_LIMITED_API))]
+     fn test_string_data_ucs4() {
+         Python::with_gil(|py| {
+             let s = "哈哈🐈";
