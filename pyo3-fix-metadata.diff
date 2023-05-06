@@ -1,5 +1,5 @@
---- pyo3-0.18.2/Cargo.toml	1970-01-01T00:00:01+00:00
-+++ pyo3-0.18.2/Cargo.toml	2023-03-26T17:20:42.698756+00:00
+--- pyo3-0.18.3/Cargo.toml	1970-01-01T00:00:01+00:00
++++ pyo3-0.18.3/Cargo.toml	2023-05-06T20:19:17.578691+00:00
 @@ -57,52 +57,6 @@
      "docsrs",
  ]
@@ -82,7 +82,7 @@
 -version = "0.5.1"
  
  [build-dependencies.pyo3-build-config]
- version = "0.18.2"
+ version = "0.18.3"
 @@ -254,7 +199,6 @@
      "anyhow",
      "experimental-inspect",
