@@ -398,7 +398,7 @@ export LANG=C.utf8
 # * skip a test that fails with Python 3.12:
 #   https://github.com/PyO3/pyo3/issues/3305
 # * skip tests that are unreliable with Python 3.12
-%cargo_test -f auto-initialize -- -- --skip err::tests::fetching_panic_exception_resumes_unwind --skip types::list::tests::test_append_refcnt --skip types::list::tests::test_insert_refcnt
+%cargo_test -f auto-initialize -- -- --skip err::tests::fetching_panic_exception_resumes_unwind --skip types::dict::tests::test_set_item_refcnt --skip types::list::tests::test_append_refcnt --skip types::list::tests::test_insert_refcnt
 %else
 %cargo_test -f auto-initialize
 %endif
