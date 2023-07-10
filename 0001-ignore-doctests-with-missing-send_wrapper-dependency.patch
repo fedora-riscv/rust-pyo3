@@ -1,0 +1,43 @@
+From 1a011b0266117687ff2b2d2de588064af964b968 Mon Sep 17 00:00:00 2001
+From: Fabio Valentini <decathorpe@gmail.com>
+Date: Wed, 5 Jul 2023 19:13:56 +0200
+Subject: [PATCH] ignore doctests with missing send_wrapper dependency
+
+---
+ src/marker.rs | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/marker.rs b/src/marker.rs
+index e5b3ed8..343bbb4 100644
+--- a/src/marker.rs
++++ b/src/marker.rs
+@@ -66,7 +66,7 @@
+ //! This will "work" to smuggle Python references across the closure, because we're not actually
+ //! doing anything with threads:
+ //!
+-//! ```rust, no_run
++//! ```rust, ignore
+ //! use pyo3::prelude::*;
+ //! use pyo3::types::PyString;
+ //! use send_wrapper::SendWrapper;
+@@ -158,7 +158,7 @@ use std::os::raw::c_int;
+ /// This also implies that the interplay between `with_gil` and `allow_threads` is unsound, for example
+ /// one can circumvent this protection using the [`send_wrapper`](https://docs.rs/send_wrapper/) crate:
+ ///
+-/// ```no_run
++/// ```ignore
+ /// # use pyo3::prelude::*;
+ /// # use pyo3::types::PyString;
+ /// use send_wrapper::SendWrapper;
+@@ -225,7 +225,7 @@ unsafe impl<T: Send> Ungil for T {}
+ /// On nightly Rust, this is not based on the [`Send`] auto trait and hence we are able
+ /// to prevent incorrectly circumventing it using e.g. the [`send_wrapper`](https://docs.rs/send_wrapper/) crate:
+ ///
+-/// ```compile_fail
++/// ```ignore
+ /// # use pyo3::prelude::*;
+ /// # use pyo3::types::PyString;
+ /// use send_wrapper::SendWrapper;
+-- 
+2.41.0
+
