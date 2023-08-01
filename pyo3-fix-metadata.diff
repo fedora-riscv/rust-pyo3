@@ -1,82 +1,6 @@
---- pyo3-0.19.1/Cargo.toml	1970-01-01T00:00:01+00:00
-+++ pyo3-0.19.1/Cargo.toml	2023-07-05T16:57:19.970854+00:00
-@@ -61,65 +61,6 @@
-     "docsrs",
- ]
- 
--[[bench]]
--name = "bench_any"
--harness = false
--
--[[bench]]
--name = "bench_call"
--harness = false
--
--[[bench]]
--name = "bench_err"
--harness = false
--
--[[bench]]
--name = "bench_decimal"
--harness = false
--required-features = ["rust_decimal"]
--
--[[bench]]
--name = "bench_dict"
--harness = false
--
--[[bench]]
--name = "bench_frompyobject"
--harness = false
--required-features = ["macros"]
--
--[[bench]]
--name = "bench_gil"
--harness = false
--
--[[bench]]
--name = "bench_list"
--harness = false
--
--[[bench]]
--name = "bench_pyclass"
--harness = false
--required-features = ["macros"]
--
--[[bench]]
--name = "bench_pyobject"
--harness = false
--
--[[bench]]
--name = "bench_set"
--harness = false
--
--[[bench]]
--name = "bench_tuple"
--harness = false
--
--[[bench]]
--name = "bench_intern"
--harness = false
--
--[[bench]]
--name = "bench_extract"
--harness = false
--
- [dependencies.anyhow]
- version = "1.0"
- optional = true
-@@ -194,9 +135,6 @@
- 
- [dev-dependencies.chrono]
- version = "0.4"
--
--[dev-dependencies.criterion]
--version = "0.3.5"
- 
- [dev-dependencies.proptest]
- version = "0.10.1"
-@@ -213,9 +151,6 @@
+--- pyo3-0.19.2/Cargo.toml	1970-01-01T00:00:01+00:00
++++ pyo3-0.19.2/Cargo.toml	2023-08-01T13:22:43.767928+00:00
+@@ -151,9 +151,6 @@
  [dev-dependencies.rustversion]
  version = "1.0"
  
@@ -86,7 +10,7 @@
  [dev-dependencies.serde]
  version = "1.0"
  features = ["derive"]
-@@ -225,9 +160,6 @@
+@@ -163,9 +160,6 @@
  
  [dev-dependencies.trybuild]
  version = ">=1.0.70"
@@ -95,8 +19,8 @@
 -version = "0.5.1"
  
  [build-dependencies.pyo3-build-config]
- version = "0.19.1"
-@@ -281,7 +213,6 @@
+ version = "0.19.2"
+@@ -219,7 +213,6 @@
      "experimental-inspect",
      "rust_decimal",
  ]
